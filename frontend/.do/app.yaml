@@ -1,0 +1,21 @@
+name: ga-quiz-frontend
+services:
+- name: frontend
+  source_dir: /
+  github:
+    repo: seu-usuario/ga-quiz
+    branch: main
+  run_command: npm run build && npx serve -s dist -l 80
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 80
+  health_check:
+    http_path: /
+  envs:
+  - key: VITE_API_BASE_URL
+    value: "https://octopus-app-4psfy.ondigitalocean.app/api"
+  - key: VITE_APP_NAME
+    value: "GA Quiz"
+  - key: VITE_APP_VERSION
+    value: "1.0.0" 

@@ -1,0 +1,2 @@
+# Avançar campanha EDURATS automaticamente à meia-noite
+0 0 * * * cd C:\dev\FGV\backend && C:\Program Files\nodejs\node.exe C:\dev\FGV\backend\auto-advance-campaign.js >> campaign-auto-advance.log 2>&1

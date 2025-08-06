@@ -1,0 +1,953 @@
+/* Variáveis de cores da Gestão da Aprendizagem */
+:root {
+  --ga-laranja: #ef7d00;
+  --ga-rosa: #e6007e;
+  --ga-verde: #95c11f;
+  --ga-laranja-claro: #ff8c1a;
+  --ga-rosa-claro: #ff1a8c;
+  --ga-verde-claro: #a8d424;
+  --ga-laranja-escuro: #d66b00;
+  --ga-rosa-escuro: #cc0066;
+  --ga-verde-escuro: #7a9a19;
+  --ga-branco: #ffffff;
+  --ga-cinza-claro: #f8f9fa;
+  --ga-cinza: #6c757d;
+  --ga-cinza-escuro: #495057;
+  --ga-preto: #212529;
+}
+
+/* RESET COMPLETO - SOBRESCREVER BOOTSTRAP */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, var(--ga-cinza-claro) 0%, #e9ecef 100%);
+  color: var(--ga-preto);
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* UMA ÚNICA GRID CENTRAL - SOBRESCREVER BOOTSTRAP COMPLETAMENTE */
+.container, .container-fluid {
+  width: 100% !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 0 15px !important;
+}
+
+/* ROW ÚNICA - SOBRESCREVER BOOTSTRAP */
+.row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  align-items: stretch !important;
+}
+
+/* COLUNAS ÚNICAS - SOBRESCREVER BOOTSTRAP */
+.col, .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12,
+.col-sm, .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12,
+.col-md, .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12,
+.col-lg, .col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12 {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  padding: 0 15px !important;
+}
+
+/* FORÇAR LARGURAS ESPECÍFICAS */
+.col-lg-8 {
+  flex: 0 0 66.666667% !important;
+  max-width: 66.666667% !important;
+  width: 66.666667% !important;
+}
+
+.col-lg-4 {
+  flex: 0 0 33.333333% !important;
+  max-width: 33.333333% !important;
+  width: 33.333333% !important;
+}
+
+.col-md-6 {
+  flex: 0 0 50% !important;
+  max-width: 50% !important;
+  width: 50% !important;
+}
+
+.col-xs-12, .col-12 {
+  flex: 0 0 100% !important;
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* Navbar gamificada */
+.gamified-navbar {
+  background: linear-gradient(135deg, var(--ga-laranja) 0%, var(--ga-rosa) 100%) !important;
+  box-shadow: 0 4px 15px rgba(239, 125, 0, 0.3);
+  border-bottom: 3px solid var(--ga-laranja);
+  width: 100% !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+}
+
+.gamified-navbar .navbar-brand {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--ga-branco) !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.gamified-navbar .nav-link {
+  color: var(--ga-branco) !important;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  margin: 0 5px;
+  padding: 8px 16px !important;
+}
+
+.gamified-navbar .nav-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Cards gamificados */
+.gamified-card {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  background: var(--ga-branco);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  margin-bottom: 20px;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.gamified-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 35px rgba(239, 125, 0, 0.2);
+}
+
+/* Badges gamificados */
+.gamified-badge {
+  background: linear-gradient(45deg, var(--ga-laranja), var(--ga-rosa)) !important;
+  color: var(--ga-branco) !important;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 2px solid var(--ga-branco);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Botões gamificados */
+.gamified-btn {
+  background: linear-gradient(45deg, var(--ga-laranja), var(--ga-rosa)) !important;
+  border: none !important;
+  color: var(--ga-branco) !important;
+  font-weight: 700;
+  padding: 12px 30px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(239, 125, 0, 0.4);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.gamified-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(239, 125, 0, 0.6);
+  background: linear-gradient(45deg, var(--ga-laranja-claro), var(--ga-rosa-claro)) !important;
+}
+
+.gamified-btn:active {
+  transform: translateY(-1px);
+}
+
+/* Progress bars gamificadas */
+.progress {
+  border-radius: 10px;
+  background: rgba(149, 193, 31, 0.2);
+  height: 20px;
+  width: 100% !important;
+}
+
+.progress-bar {
+  background: linear-gradient(45deg, var(--ga-verde), var(--ga-laranja));
+  border-radius: 10px;
+  font-weight: 700;
+  color: var(--ga-branco);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Alertas gamificados */
+.alert-info {
+  background: linear-gradient(135deg, rgba(239, 125, 0, 0.1), rgba(230, 0, 126, 0.1));
+  border: 2px solid var(--ga-laranja);
+  color: var(--ga-laranja-escuro);
+  border-radius: 12px;
+}
+
+.alert-success {
+  background: linear-gradient(135deg, rgba(149, 193, 31, 0.1), rgba(149, 193, 31, 0.2));
+  border: 2px solid var(--ga-verde);
+  color: var(--ga-verde-escuro);
+  border-radius: 12px;
+}
+
+/* Tabelas gamificadas */
+.table {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 100% !important;
+}
+
+.table thead th {
+  background: linear-gradient(135deg, var(--ga-laranja), var(--ga-rosa));
+  color: var(--ga-branco);
+  font-weight: 700;
+  border: none;
+  padding: 15px;
+}
+
+.table tbody tr:hover {
+  background: rgba(149, 193, 31, 0.1);
+  transform: scale(1.01);
+  transition: all 0.3s ease;
+}
+
+/* List group gamificada */
+.list-group-item {
+  border: none;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+  background: var(--ga-branco);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 100% !important;
+}
+
+.list-group-item:hover {
+  background: rgba(239, 125, 0, 0.1);
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(239, 125, 0, 0.2);
+}
+
+.list-group-item.active {
+  background: linear-gradient(45deg, var(--ga-laranja), var(--ga-rosa));
+  color: var(--ga-branco);
+  border: none;
+  box-shadow: 0 4px 12px rgba(239, 125, 0, 0.4);
+}
+
+/* Form controls gamificados */
+.form-control {
+  border: 2px solid rgba(149, 193, 31, 0.3);
+  border-radius: 10px;
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+  width: 100% !important;
+}
+
+.form-control:focus {
+  border-color: var(--ga-verde);
+  box-shadow: 0 0 0 0.2rem rgba(149, 193, 31, 0.25);
+}
+
+.form-select {
+  border: 2px solid rgba(239, 125, 0, 0.3);
+  border-radius: 10px;
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+  width: 100% !important;
+}
+
+.form-select:focus {
+  border-color: var(--ga-laranja);
+  box-shadow: 0 0 0 0.2rem rgba(239, 125, 0, 0.25);
+}
+
+/* Modal gamificado */
+.modal-content {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, var(--ga-laranja), var(--ga-rosa));
+  color: var(--ga-branco);
+  border-radius: 16px 16px 0 0;
+  border: none;
+}
+
+.modal-title {
+  font-weight: 700;
+  color: var(--ga-branco);
+}
+
+/* Modal Fullscreen para o vídeo - CORRIGIDO */
+.fullscreen-modal {
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  width: 100vw !important;
+  height: 100vh !important;
+}
+
+.fullscreen-modal .modal-dialog {
+  margin: 0 !important;
+  max-width: 100vw !important;
+  width: 100vw !important;
+  height: 100vh !important;
+}
+
+.fullscreen-modal .modal-content {
+  border: none !important;
+  border-radius: 0 !important;
+  background: #000 !important;
+  height: 100vh !important;
+  width: 100vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.fullscreen-modal .modal-body {
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 100vh !important;
+  width: 100vw !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Garantir que o vídeo ocupe toda a tela */
+.fullscreen-modal video {
+  width: 100vw !important;
+  height: 100vh !important;
+  object-fit: cover !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 1;
+}
+
+/* Badges específicos */
+.badge.bg-warning {
+  background: linear-gradient(45deg, var(--ga-laranja), var(--ga-rosa)) !important;
+  color: var(--ga-branco) !important;
+  font-weight: 700;
+}
+
+.badge.bg-success {
+  background: linear-gradient(45deg, var(--ga-verde), var(--ga-verde-claro)) !important;
+  color: var(--ga-branco) !important;
+  font-weight: 700;
+}
+
+/* Animações */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Utilitários para centralização - AJUSTADOS PARA FLUIDO */
+.text-center-mobile {
+  text-align: center;
+}
+
+.d-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.d-flex-center-mobile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Centralização de conteúdo em cards - AJUSTADO PARA FLUIDO */
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100% !important;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100% !important;
+  padding: 1.25rem;
+}
+
+/* Centralização de botões e elementos interativos - AJUSTADO */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Centralização de formulários - AJUSTADO */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  width: 100% !important;
+}
+
+/* Centralização de badges - AJUSTADO */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Centralização de listas - AJUSTADO */
+.list-group {
+  width: 100% !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.list-group-item {
+  width: 100% !important;
+}
+
+/* Centralização de tabelas - AJUSTADO */
+.table-responsive {
+  width: 100% !important;
+  display: flex;
+  justify-content: center;
+}
+
+/* Centralização de alerts - AJUSTADO */
+.alert {
+  width: 100% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsividade - Mobile First */
+@media (max-width: 768px) {
+  .container, .container-fluid {
+    padding: 0 10px;
+  }
+  
+  .gamified-navbar .nav-link {
+    margin: 2px 0;
+    text-align: center;
+    padding: 10px 12px !important;
+  }
+  
+  .gamified-navbar .navbar-brand {
+    font-size: 1.2rem;
+  }
+  
+  .gamified-card {
+    margin-bottom: 15px;
+    border-radius: 12px;
+  }
+  
+  .gamified-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+  
+  .table {
+    font-size: 14px;
+  }
+  
+  .table thead th {
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+  
+  .table tbody td {
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+  
+  .list-group-item {
+    font-size: 14px;
+    padding: 12px 15px;
+  }
+  
+  .form-control, .form-select {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  
+  .modal-dialog {
+    margin: 10px;
+  }
+  
+  .modal-content {
+    border-radius: 12px;
+  }
+  
+  .modal-header {
+    border-radius: 12px 12px 0 0;
+  }
+  
+  .text-center-mobile {
+    text-align: center !important;
+  }
+  
+  .d-flex-mobile {
+    display: flex !important;
+  }
+  
+  .flex-column-mobile {
+    flex-direction: column !important;
+  }
+  
+  .justify-content-center-mobile {
+    justify-content: center !important;
+  }
+  
+  .align-items-center-mobile {
+    align-items: center !important;
+  }
+  
+  .d-flex-center-mobile {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .container, .container-fluid {
+    padding: 0 8px;
+  }
+  
+  .gamified-navbar .navbar-brand {
+    font-size: 1rem;
+  }
+  
+  .gamified-card {
+    margin-bottom: 10px;
+    border-radius: 8px;
+  }
+  
+  .gamified-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+  
+  .table {
+    font-size: 12px;
+  }
+  
+  .table thead th {
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+  
+  .table tbody td {
+    padding: 6px 4px;
+    font-size: 11px;
+  }
+  
+  .list-group-item {
+    font-size: 12px;
+    padding: 10px 12px;
+  }
+  
+  .form-control, .form-select {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  
+  .modal-dialog {
+    margin: 5px;
+  }
+  
+  .modal-content {
+    border-radius: 8px;
+  }
+  
+  .modal-header {
+    border-radius: 8px 8px 0 0;
+  }
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ga-cinza-claro);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, var(--ga-laranja), var(--ga-rosa));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, var(--ga-laranja-claro), var(--ga-rosa-claro));
+}
+
+/* FORÇAR OCUPAÇÃO TOTAL - SOBRESCREVER QUALQUER OUTRO CSS */
+.container > *,
+.container-fluid > *,
+.row > *,
+.col > *,
+.card > *,
+.card-body > * {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* GARANTIR QUE NÃO HÁ DUAS GRIDS */
+body > * {
+  width: 100% !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+}
+
+/* Centralizar modal - CORRIGIDO PARA UMA ÚNICA GRID */
+.modal {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: 100vh !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 1050 !important;
+}
+
+.modal-dialog {
+  margin: 0 auto !important;
+  max-width: 500px !important;
+  width: 90% !important;
+  position: relative !important;
+}
+
+.modal-dialog-centered {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
+}
+
+.modal-content {
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+  width: 100% !important;
+  max-width: 500px !important;
+  margin: 0 auto !important;
+}
+
+/* SOBRESCREVER QUALQUER CSS DO BOOTSTRAP PARA MODAL */
+.modal-backdrop {
+  width: 100vw !important;
+  height: 100vh !important;
+}
+
+.modal-open {
+  overflow: hidden !important;
+}
+
+/* FORÇAR CENTRALIZAÇÃO DO MODAL - SOBRESCREVER TUDO */
+.modal.show {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 1050 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.modal.show .modal-dialog {
+  margin: 0 auto !important;
+  max-width: 500px !important;
+  width: 90% !important;
+  position: relative !important;
+  transform: none !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+/* GARANTIR QUE NÃO HÁ CONFLITOS */
+.modal-dialog-centered {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
+  margin: 0 auto !important;
+  position: relative !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+/* CORRIGIR PROBLEMA DE ZOOM */
+.modal-backdrop {
+  width: 100vw !important;
+  height: 100vh !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+/* FORÇAR CENTRALIZAÇÃO ABSOLUTA */
+.modal-content {
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+  width: 100% !important;
+  max-width: 500px !important;
+  margin: 0 auto !important;
+  position: relative !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
+/* CORRIGIR PROBLEMA DE ZOOM - SOBRESCREVER TUDO */
+@media screen and (max-width: 100vw) {
+  .modal.show {
+    width: 100vw !important;
+    height: 100vh !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+  }
+  
+  .modal.show .modal-dialog {
+    margin: 0 auto !important;
+    position: relative !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    max-width: 500px !important;
+    width: 90% !important;
+  }
+}
+
+/* GARANTIR QUE O MODAL SEMPRE FIQUE CENTRALIZADO - CORRIGIDO PARA ZOOM */
+.modal.show {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 1050 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+}
+
+.modal.show .modal-dialog {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  max-width: 500px !important;
+  width: 90% !important;
+  margin: 0 !important;
+}
+
+/* SOBRESCREVER QUALQUER TRANSFORM DO BOOTSTRAP */
+.modal-dialog-centered {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  max-width: 500px !important;
+  width: 90% !important;
+  z-index: 1055 !important;
+}
+
+/* FORÇAR CENTRALIZAÇÃO ABSOLUTA PARA QUALQUER ZOOM */
+.modal.show .modal-dialog,
+.modal-dialog-centered {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  max-width: 500px !important;
+  width: 90% !important;
+  right: auto !important;
+  bottom: auto !important;
+  z-index: 1055 !important;
+}
+
+/* GARANTIR QUE O MODAL SEMPRE FIQUE NO CENTRO */
+.modal.show {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 1050 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+}
+
+/* SOBRESCREVER QUALQUER CSS DO BOOTSTRAP QUE POSSA INTERFERIR */
+.modal-dialog {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  max-width: 500px !important;
+  width: 90% !important;
+  z-index: 1055 !important;
+}
+
+/* GARANTIR CENTRALIZAÇÃO ABSOLUTA */
+.modal.show .modal-dialog {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  max-width: 500px !important;
+  width: 90% !important;
+  z-index: 1055 !important;
+}
+
+/* Centralização específica para timer e dia do desafio */
+.timer-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-width: 120px !important;
+}
+
+.timer-content {
+  text-align: center !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Menu superior compacto */
+.menu-superior-compacto {
+  padding: 8px 0 !important;
+}
+
+.menu-superior-compacto .row {
+  margin: 0 !important;
+  gap: 8px !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.menu-superior-compacto .col {
+  padding: 0 4px !important;
+  flex-shrink: 0 !important;
+}
+
+.menu-superior-compacto .col-xs-auto {
+  flex: 0 0 auto !important;
+  width: auto !important;
+}
+
+/* Responsividade para o menu superior */
+@media (max-width: 768px) {
+  .menu-superior-compacto .row {
+    gap: 4px !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .menu-superior-compacto .col {
+    padding: 0 2px !important;
+  }
+  
+  .menu-superior-compacto .col-xs-auto {
+    flex: 0 0 auto !important;
+    width: auto !important;
+  }
+  
+  .timer-container {
+    min-width: 100px !important;
+  }
+  
+  .timer-content {
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .menu-superior-compacto {
+    padding: 6px 0 !important;
+  }
+  
+  .menu-superior-compacto .row {
+    gap: 2px !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .menu-superior-compacto .col {
+    padding: 0 1px !important;
+  }
+  
+  .menu-superior-compacto .col-xs-auto {
+    flex: 0 0 auto !important;
+    width: auto !important;
+  }
+  
+  .timer-container {
+    min-width: 80px !important;
+  }
+  
+  .timer-content {
+    font-size: 10px !important;
+  }
+}

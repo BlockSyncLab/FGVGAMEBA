@@ -1,0 +1,27 @@
+name: ga-quiz-backend
+services:
+- name: backend
+  source_dir: /
+  github:
+    repo: seu-usuario/ga-quiz
+    branch: main
+  run_command: npm start
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: PORT
+    value: "3001"
+  - key: JWT_SECRET
+    value: ${JWT_SECRET}
+
+  - key: FIREBASE_PROJECT_ID
+    value: ${FIREBASE_PROJECT_ID}
+  - key: FIREBASE_DATABASE_URL
+    value: ${FIREBASE_DATABASE_URL}
+  - key: FIREBASE_PRIVATE_KEY
+    value: ${FIREBASE_PRIVATE_KEY}
+  - key: FIREBASE_CLIENT_EMAIL
+    value: ${FIREBASE_CLIENT_EMAIL} 
