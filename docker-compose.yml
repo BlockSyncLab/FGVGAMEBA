@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # Backend
+  backend:
+    build: ./backend
+    container_name: ga-quiz-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - frontend
+    networks:
+      - ga-quiz-network
+
+  # Frontend
+  frontend:
+    build: ./frontend
+    container_name: ga-quiz-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - ga-quiz-network
+
+networks:
+  ga-quiz-network:
+    driver: bridge 

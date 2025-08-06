@@ -1,0 +1,150 @@
+# Dependências
+node_modules/
+*/node_modules/
+
+# Arquivos de ambiente e configurações sensíveis
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+*/env.production
+config.env
+config.production.env
+config.development.env
+config.test.env
+
+# Firebase e chaves de API
+serviceAccountKey.json
+*/serviceAccountKey.json
+firebase-key.json
+firebase-credentials.json
+google-credentials.json
+*.pem
+*.key
+*.crt
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Banco de dados
+database/*.db
+*/database/*.db
+*.sqlite
+*.sqlite3
+*.db
+
+# Build e distribuição
+dist/
+build/
+*/dist/
+*/build/
+.next/
+.nuxt/
+.vuepress/dist
+.serverless/
+.fusebox/
+.dynamodb/
+
+# Arquivos temporários
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+
+# Arquivos do sistema
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE e editores
+.vscode/
+.idea/
+*.sublime-*
+.atom/
+.brackets.json
+.micro/
+
+# Arquivos de teste e desenvolvimento
+test-*.js
+*-test.js
+test/
+tests/
+__tests__/
+*.test.js
+*.spec.js
+coverage/
+.nyc_output/
+.jest/
+
+# Arquivos específicos do projeto que não devem ser públicos
+debug-*.js
+fix-*.js
+force-*.js
+check-*.js
+update-*.js
+set-*.js
+recreate-*.js
+reset-*.js
+clear-*.js
+migrate-*.js
+auto-*.js
+init-*.js
+activate-*.js
+advance-*.js
+
+# Scripts de administração
+SCRIPTS-GUIDE.md
+AUTO-ADVANCE-GUIDE.md
+CAMPAIGN-MANAGEMENT-GUIDE.md
+DEPLOY-GUIDE.md
+DEPLOY-STEP-BY-STEP.md
+GUIA-DEPLOY.md
+FIREBASE-SETUP.md
+FIREBASE-AUTH-SETUP.md
+AUTH-SETUP.md
+GOOGLE-SHEETS-IMPORT.md
+VARIABLES-PROD.md
+
+# Arquivos de configuração sensíveis
+netlify.toml
+vercel.json
+*.toml
+deploy-*.sh
+commit-and-push.sh
+
+# Dados de usuário e informações privadas
+users-data.json
+backup-*.json
+export-*.json
+import-*.json
+
+# Arquivos de cache e temporários específicos
+.cache/
+.temp/
+tmp/
+temp/
+
+# Arquivos de backup
+*.bak
+*.backup
+*.old
+*.orig
+
+# Arquivos de configuração local
+.local
+local.* 
