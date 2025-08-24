@@ -1,7 +1,33 @@
 const express = require('express');
-const { getUsers, getUserById, getCampanhaConfig } = require('../database/firebase');
+const { Pool } = require('pg');
+const config = require('../config');
+
+const pool = new Pool({
+  user: config.DB_USER,
+  host: config.DB_HOST,
+  database: config.DB_NAME,
+  password: config.DB_PASSWORD,
+  port: config.DB_PORT || 5432,
+  ssl: config.DB_SSL ? { rejectUnauthorized: false } : false,
+});
 
 const router = express.Router();
+
+// Funções PostgreSQL para substituir Firebase
+async function getUsers() {
+  const result = await pool.query('SELECT * FROM users ORDER BY id');
+  return result.rows;
+}
+
+async function getUserById(userId) {
+  const result = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+  return result.rows[0] || null;
+}
+
+async function getCampanhaConfig() {
+  const result = await pool.query('SELECT * FROM campanha_config WHERE ativa = true ORDER BY id DESC LIMIT 1');
+  return result.rows[0] || null;
+}
 
 // Função para calcular o dia atual baseado na data real
 async function getCurrentDay() {
@@ -58,12 +84,11 @@ router.get('/turmas', async (req, res) => {
     
     // Buscar todos os usuários
     const users = await getUsers();
-    const usersArray = Object.values(users || {});
 
     // Agrupar por turma e calcular médias
     const turmasMap = {};
     
-    usersArray.forEach(user => {
+    users.forEach(user => {
       const key = `${user.turma}-${user.escola}`;
       if (!turmasMap[key]) {
         turmasMap[key] = {
@@ -86,12 +111,18 @@ router.get('/turmas', async (req, res) => {
         turmasMap[key].totalXpAtivos += user.xp_atual || 0;
       }
       
-      // Calcular participação baseada no dia atual
+      // Calcular participação baseada no dia atual (10 questões)
       let participacao = 0;
       if (currentDay >= 1) participacao += (user.response_q1 ? 1 : 0);
       if (currentDay >= 2) participacao += (user.response_q2 ? 1 : 0);
       if (currentDay >= 3) participacao += (user.response_q3 ? 1 : 0);
       if (currentDay >= 4) participacao += (user.response_q4 ? 1 : 0);
+      if (currentDay >= 5) participacao += (user.response_q5 ? 1 : 0);
+      if (currentDay >= 6) participacao += (user.response_q6 ? 1 : 0);
+      if (currentDay >= 7) participacao += (user.response_q7 ? 1 : 0);
+      if (currentDay >= 8) participacao += (user.response_q8 ? 1 : 0);
+      if (currentDay >= 9) participacao += (user.response_q9 ? 1 : 0);
+      if (currentDay >= 10) participacao += (user.response_q10 ? 1 : 0);
       
       turmasMap[key].totalParticipacao += participacao;
     });
@@ -159,12 +190,11 @@ router.get('/top3', async (req, res) => {
     
     // Buscar todos os usuários
     const users = await getUsers();
-    const usersArray = Object.values(users || {});
 
     // Agrupar por turma e calcular médias
     const turmasMap = {};
     
-    usersArray.forEach(user => {
+    users.forEach(user => {
       const key = `${user.turma}-${user.escola}`;
       if (!turmasMap[key]) {
         turmasMap[key] = {
@@ -187,12 +217,18 @@ router.get('/top3', async (req, res) => {
         turmasMap[key].totalXpAtivos += user.xp_atual || 0;
       }
       
-      // Calcular participação baseada no dia atual
+      // Calcular participação baseada no dia atual (10 questões)
       let participacao = 0;
       if (currentDay >= 1) participacao += (user.response_q1 ? 1 : 0);
       if (currentDay >= 2) participacao += (user.response_q2 ? 1 : 0);
       if (currentDay >= 3) participacao += (user.response_q3 ? 1 : 0);
       if (currentDay >= 4) participacao += (user.response_q4 ? 1 : 0);
+      if (currentDay >= 5) participacao += (user.response_q5 ? 1 : 0);
+      if (currentDay >= 6) participacao += (user.response_q6 ? 1 : 0);
+      if (currentDay >= 7) participacao += (user.response_q7 ? 1 : 0);
+      if (currentDay >= 8) participacao += (user.response_q8 ? 1 : 0);
+      if (currentDay >= 9) participacao += (user.response_q9 ? 1 : 0);
+      if (currentDay >= 10) participacao += (user.response_q10 ? 1 : 0);
       
       turmasMap[key].totalParticipacao += participacao;
     });
@@ -248,10 +284,9 @@ router.get('/turma/:turma/:escola', async (req, res) => {
 
     // Buscar todos os usuários
     const users = await getUsers();
-    const usersArray = Object.values(users || {});
 
     // Filtrar usuários da turma específica
-    const turmaUsers = usersArray.filter(u => 
+    const turmaUsers = users.filter(u => 
       u.turma === turma && u.escola === escola
     );
 
@@ -273,19 +308,25 @@ router.get('/turma/:turma/:escola', async (req, res) => {
     
     let totalParticipacao = 0;
     turmaUsers.forEach(u => {
-      // Calcular participação baseada no dia atual
+      // Calcular participação baseada no dia atual (10 questões)
       let participacao = 0;
       if (currentDay >= 1) participacao += (u.response_q1 ? 1 : 0);
       if (currentDay >= 2) participacao += (u.response_q2 ? 1 : 0);
       if (currentDay >= 3) participacao += (u.response_q3 ? 1 : 0);
       if (currentDay >= 4) participacao += (u.response_q4 ? 1 : 0);
+      if (currentDay >= 5) participacao += (u.response_q5 ? 1 : 0);
+      if (currentDay >= 6) participacao += (u.response_q6 ? 1 : 0);
+      if (currentDay >= 7) participacao += (u.response_q7 ? 1 : 0);
+      if (currentDay >= 8) participacao += (u.response_q8 ? 1 : 0);
+      if (currentDay >= 9) participacao += (u.response_q9 ? 1 : 0);
+      if (currentDay >= 10) participacao += (u.response_q10 ? 1 : 0);
       totalParticipacao += participacao;
     });
     const mediaParticipacao = totalEstudantes > 0 && currentDay > 0 ? totalParticipacao / (totalEstudantes * currentDay) : 0;
 
     // Calcular score global para todas as turmas
     const turmasMap = {};
-    usersArray.forEach(user => {
+    users.forEach(user => {
       const key = `${user.turma}-${user.escola}`;
       if (!turmasMap[key]) {
         turmasMap[key] = {
@@ -308,12 +349,18 @@ router.get('/turma/:turma/:escola', async (req, res) => {
         turmasMap[key].totalXpAtivos += user.xp_atual || 0;
       }
       
-      // Calcular participação baseada no dia atual
+      // Calcular participação baseada no dia atual (10 questões)
       let participacao = 0;
       if (currentDay >= 1) participacao += (user.response_q1 ? 1 : 0);
       if (currentDay >= 2) participacao += (user.response_q2 ? 1 : 0);
       if (currentDay >= 3) participacao += (user.response_q3 ? 1 : 0);
       if (currentDay >= 4) participacao += (user.response_q4 ? 1 : 0);
+      if (currentDay >= 5) participacao += (user.response_q5 ? 1 : 0);
+      if (currentDay >= 6) participacao += (user.response_q6 ? 1 : 0);
+      if (currentDay >= 7) participacao += (user.response_q7 ? 1 : 0);
+      if (currentDay >= 8) participacao += (user.response_q8 ? 1 : 0);
+      if (currentDay >= 9) participacao += (user.response_q9 ? 1 : 0);
+      if (currentDay >= 10) participacao += (user.response_q10 ? 1 : 0);
       
       turmasMap[key].totalParticipacao += participacao;
     });
@@ -390,10 +437,9 @@ router.get('/minha-turma', async (req, res) => {
     
     // Buscar todos os usuários
     const allUsers = await getUsers();
-    const usersArray = Object.values(allUsers || {});
 
     // Filtrar estudantes da mesma turma
-    const estudantesTurma = usersArray.filter(u => 
+    const estudantesTurma = allUsers.filter(u => 
       u.turma === user.turma && u.escola === user.escola
     ).sort((a, b) => (b.xp_atual || 0) - (a.xp_atual || 0));
 
@@ -408,12 +454,18 @@ router.get('/minha-turma', async (req, res) => {
     
     let totalParticipacao = 0;
     estudantesTurma.forEach(u => {
-      // Calcular participação baseada no dia atual
+      // Calcular participação baseada no dia atual (10 questões)
       let participacao = 0;
       if (currentDay >= 1) participacao += (u.response_q1 ? 1 : 0);
       if (currentDay >= 2) participacao += (u.response_q2 ? 1 : 0);
       if (currentDay >= 3) participacao += (u.response_q3 ? 1 : 0);
       if (currentDay >= 4) participacao += (u.response_q4 ? 1 : 0);
+      if (currentDay >= 5) participacao += (u.response_q5 ? 1 : 0);
+      if (currentDay >= 6) participacao += (u.response_q6 ? 1 : 0);
+      if (currentDay >= 7) participacao += (u.response_q7 ? 1 : 0);
+      if (currentDay >= 8) participacao += (u.response_q8 ? 1 : 0);
+      if (currentDay >= 9) participacao += (u.response_q9 ? 1 : 0);
+      if (currentDay >= 10) participacao += (u.response_q10 ? 1 : 0);
       totalParticipacao += participacao;
     });
     const mediaParticipacao = totalEstudantes > 0 && currentDay > 0 ? totalParticipacao / (totalEstudantes * currentDay) : 0;
@@ -427,7 +479,7 @@ router.get('/minha-turma', async (req, res) => {
 
     // Calcular score global para todas as turmas
     const turmasMap = {};
-    usersArray.forEach(user => {
+    allUsers.forEach(user => {
       const key = `${user.turma}-${user.escola}`;
       if (!turmasMap[key]) {
         turmasMap[key] = {
@@ -449,12 +501,18 @@ router.get('/minha-turma', async (req, res) => {
         turmasMap[key].estudantesAtivos++;
         turmasMap[key].totalXpAtivos += user.xp_atual || 0;
       }
-      // Calcular participação baseada no dia atual
+      // Calcular participação baseada no dia atual (10 questões)
       let participacao = 0;
       if (currentDay >= 1) participacao += (user.response_q1 ? 1 : 0);
       if (currentDay >= 2) participacao += (user.response_q2 ? 1 : 0);
       if (currentDay >= 3) participacao += (user.response_q3 ? 1 : 0);
       if (currentDay >= 4) participacao += (user.response_q4 ? 1 : 0);
+      if (currentDay >= 5) participacao += (user.response_q5 ? 1 : 0);
+      if (currentDay >= 6) participacao += (user.response_q6 ? 1 : 0);
+      if (currentDay >= 7) participacao += (user.response_q7 ? 1 : 0);
+      if (currentDay >= 8) participacao += (user.response_q8 ? 1 : 0);
+      if (currentDay >= 9) participacao += (user.response_q9 ? 1 : 0);
+      if (currentDay >= 10) participacao += (user.response_q10 ? 1 : 0);
       turmasMap[key].totalParticipacao += participacao;
     });
 
@@ -480,7 +538,13 @@ router.get('/minha-turma', async (req, res) => {
         (estudante.response_q1 ? 1 : 0) +
         (estudante.response_q2 ? 1 : 0) +
         (estudante.response_q3 ? 1 : 0) +
-        (estudante.response_q4 ? 1 : 0)
+        (estudante.response_q4 ? 1 : 0) +
+        (estudante.response_q5 ? 1 : 0) +
+        (estudante.response_q6 ? 1 : 0) +
+        (estudante.response_q7 ? 1 : 0) +
+        (estudante.response_q8 ? 1 : 0) +
+        (estudante.response_q9 ? 1 : 0) +
+        (estudante.response_q10 ? 1 : 0)
       );
       
       return {
@@ -488,7 +552,7 @@ router.get('/minha-turma', async (req, res) => {
         nome: `Aluno ${estudante.login}`,
         xp: estudante.xp_atual || 0,
         desafiosCompletados: desafiosCompletados,
-        nivel: Math.floor((estudante.xp_atual || 0) / 500) + 1
+        nivel: Math.floor((estudante.xp_atual || 0) / 100) + 1
       };
     });
 
@@ -546,15 +610,14 @@ router.get('/user-position', async (req, res) => {
 
     // Buscar todos os usuários
     const allUsers = await getUsers();
-    const usersArray = Object.values(allUsers || {});
 
     console.log('🔍 Debug ranking:');
     console.log(`  - ID do usuário logado: ${user.id}`);
     console.log(`  - ID do token: ${decoded.id}`);
-    console.log(`  - Total de usuários: ${usersArray.length}`);
+    console.log(`  - Total de usuários: ${allUsers.length}`);
 
     // Ordenar usuários por XP (maior para menor)
-    const rankingGeral = usersArray
+    const rankingGeral = allUsers
       .filter(u => u.xp_atual !== undefined) // Filtrar usuários válidos
       .sort((a, b) => (b.xp_atual || 0) - (a.xp_atual || 0));
 

@@ -19,6 +19,7 @@ export interface User {
 
 export interface Question {
   id: number;
+  day: number;
   pergunta: string;
   imagem?: string;
   dica: string;
@@ -27,7 +28,6 @@ export interface Question {
   a3: string;
   a4: string;
   a5: string;
-  ac: number;
 }
 
 export interface LoginResponse {
@@ -40,6 +40,21 @@ export interface AvailableQuestionsResponse {
   nextHint?: string;
   currentDay?: number;
   maxDays?: number;
+}
+
+export interface TurmaInfo {
+  turma: string;
+  escola: string;
+  totalEstudantes: number;
+  posicao: number;
+  mediaXp: number;
+  mediaParticipacao: number;
+  scoreGlobal: number;
+}
+
+export interface ClassPositionResponse {
+  success: boolean;
+  turma: TurmaInfo;
 }
 
 class ApiService {
@@ -81,6 +96,11 @@ class ApiService {
     });
 
     if (!response.ok) {
+      // Se for erro de autenticação (401), limpar token
+      if (response.status === 401) {
+        this.logout();
+        throw new Error('Sessão expirada. Faça login novamente.');
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -127,7 +147,7 @@ class ApiService {
     return this.request('/ranking/top3');
   }
 
-  async getClassPosition(turma: string, escola: string): Promise<{ success: boolean; turma: { posicao: number; mediaXp: number } }> {
+  async getClassPosition(turma: string, escola: string): Promise<ClassPositionResponse> {
     return this.request(`/ranking/turma/${encodeURIComponent(turma)}/${encodeURIComponent(escola)}`);
   }
 

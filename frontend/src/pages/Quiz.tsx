@@ -1,32 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Card, ProgressBar, Button, ListGroup, Row, Col, Badge, Alert, Form } from 'react-bootstrap';
+import { Card, ProgressBar, Button, ListGroup, Badge, Alert, Form } from 'react-bootstrap';
 import { useUser } from '../contexts/UserContext';
 import { apiService } from '../services/api';
 import type { Question } from '../services/api';
 
 // Função para determinar o estágio do estudante
 function getStage(nivel: number) {
-  if (nivel === 1) return { nome: 'Coelho', cor: '#e6007e' };
-  if (nivel <= 3) return { nome: 'Lebre', cor: '#ef7d00' };
-  return { nome: 'Rato', cor: '#6c757d' };
+  if (nivel === 1) return { nome: 'Aprendiz', cor: '#e6007e' };
+  if (nivel <= 3) return { nome: 'Veterano', cor: '#ef7d00' };
+  return { nome: 'Especialista', cor: '#95c11f' };
 }
 
-// Dados mockados para o ranking de turmas (média de pontos) - não utilizado atualmente
-// const rankingTurmas = [
-//   { id: 1, turma: '3ª Série A', escola: 'Colégio Estadual da Bahia', mediaXp: 1450, totalEstudantes: 25 },
-//   { id: 2, turma: '3ª Série B', escola: 'Colégio Modelo', mediaXp: 1380, totalEstudantes: 28 },
-//   { id: 3, turma: '2ª Série A', escola: 'Colégio Estadual da Bahia', mediaXp: 1320, totalEstudantes: 30 },
-//   { id: 4, turma: '2ª Série B', escola: 'Colégio Modelo', mediaXp: 1280, totalEstudantes: 26 },
-//   { id: 5, turma: '1ª Série A', escola: 'Colégio Dois de Julho', mediaXp: 1250, totalEstudantes: 32 },
-//   { id: 6, turma: '3ª Série C', escola: 'Colégio Estadual da Bahia', mediaXp: 1200, totalEstudantes: 24 },
-//   { id: 7, turma: '1ª Série B', escola: 'Colégio Dois de Julho', mediaXp: 1180, totalEstudantes: 29 },
-//   { id: 8, turma: '2ª Série C', escola: 'Colégio Modelo', mediaXp: 1150, totalEstudantes: 27 },
-// ];
 
-const coresPodio = ['#ef7d00', '#e6007e', '#95c11f'];
+
+
 
 function Quiz() {
-  const { user, addXP } = useUser();
+  const { user, addXP, logout } = useUser();
   
   // Estados para integração com API
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -41,8 +31,7 @@ function Quiz() {
   const [acertou, setAcertou] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set());
-  const [rankingTurma, setRankingTurma] = useState<any[]>([]);
-  const [loadingRanking, setLoadingRanking] = useState(true);
+
   
   // Estados para o modal de próxima pergunta
   const [nextQuestionInfo, setNextQuestionInfo] = useState<any>(null);
@@ -50,8 +39,8 @@ function Quiz() {
 
   const stage = getStage(user.nivel);
   const xpTotal = user.xp_atual || user.xp;
-  const xpAtual = xpTotal % 50;
-  const xpParaProxNivel = 50 - xpAtual;
+  const xpAtual = xpTotal % 100;
+  const xpParaProxNivel = 100 - xpAtual;
   const proximoNivel = user.nivel + 1;
   const proximaEtapa = getStage(proximoNivel);
   const mudouEtapa = stage.nome !== proximaEtapa.nome && acertou;
@@ -77,8 +66,17 @@ function Quiz() {
         if (response.questions.length > 0) {
           setSelectedQuestion(response.questions[0]);
         }
-      } catch (err) {
-        setError('Erro ao carregar questões. Tente novamente.');
+      } catch (err: any) {
+        if (err.message && err.message.includes('Sessão expirada')) {
+          setError('Sua sessão expirou. Redirecionando para o login...');
+          // Fazer logout e redirecionar para home após 2 segundos
+          setTimeout(() => {
+            logout();
+            window.location.href = '/';
+          }, 2000);
+        } else {
+          setError('Erro ao carregar questões. Tente novamente.');
+        }
         console.error('Erro ao carregar questões:', err);
       } finally {
         setLoading(false);
@@ -88,30 +86,7 @@ function Quiz() {
     loadQuestions();
   }, [user]);
 
-  // Carregar ranking da turma
-  useEffect(() => {
-    const loadRankingTurma = async () => {
-      try {
-        setLoadingRanking(true);
-        
-        if (!user || !user.login) {
-          setLoadingRanking(false);
-          return;
-        }
-        
-        const response = await apiService.getTop3Classes();
-        if (response.success) {
-          setRankingTurma(response.top3);
-        }
-      } catch (err) {
-        console.error('Erro ao carregar ranking da turma:', err);
-      } finally {
-        setLoadingRanking(false);
-      }
-    };
 
-    loadRankingTurma();
-  }, [user]);
 
   // Carregar informações da próxima pergunta
   useEffect(() => {
@@ -254,117 +229,7 @@ function Quiz() {
     setNextHint('');
   };
 
-  const renderRankingTurmas = () => (
-    <Card className="mb-4 gamified-card" style={{ background: '#f8f9fa' }}>
-      <Card.Body>
-        <Card.Title style={{ fontWeight: 700, fontSize: 24, color: '#ef7d00', textAlign: 'center', marginBottom: 20 }} className="text-center-mobile">
-          🏆 Ranking de Turmas - Score Global (XP × Participação)
-        </Card.Title>
-        
-        {loadingRanking ? (
-          <div style={{ textAlign: 'center', padding: '20px' }}>
-            <div className="spinner-border text-warning" role="status">
-              <span className="visually-hidden">Carregando...</span>
-            </div>
-            <div style={{ marginTop: 10, color: '#666' }}>Carregando ranking...</div>
-          </div>
-        ) : rankingTurma.length > 0 ? (
-          <>
-            {/* Top 3 com pódio */}
-            <Row className="mb-4">
-              <Col xs={12}>
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 20, marginBottom: 20, flexWrap: 'wrap' }}>
-                  {rankingTurma.slice(0, 3).map((item, idx) => (
-                <div key={idx} style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  minWidth: 160,
-                  marginTop: idx === 0 ? 0 : idx === 1 ? 20 : 40
-                }}>
-                  <div style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: '50%',
-                    background: coresPodio[idx],
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#fff',
-                    fontWeight: 700,
-                    fontSize: 24,
-                    marginBottom: 8
-                  }}>
-                    {idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}
-                  </div>
-                  <div style={{ fontSize: 16, fontWeight: 600, textAlign: 'center' }}>
-                    {item.turma}
-                  </div>
-                  <div style={{ fontSize: 12, color: '#6c757d', textAlign: 'center', marginBottom: 4 }}>
-                    {item.escola}
-                  </div>
-                  <Badge bg="warning" text="dark" style={{ fontSize: 12, margin: 2 }}>
-                    Score: {item.scoreGlobal || item.mediaXp}
-                  </Badge>
-                  <div style={{ fontSize: 10, color: '#888', marginTop: 2 }}>
-                    {item.totalEstudantes} estudantes
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Col>
-        </Row>
 
-        {/* Lista completa do ranking */}
-        <div style={{ maxHeight: 300, overflowY: 'auto' }}>
-          {rankingTurma.map((item, idx) => (
-            <div key={item.id} style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '8px 12px',
-              borderBottom: '1px solid #eee',
-              background: idx < 3 ? 'rgba(239,125,0,0.1)' : 'transparent',
-              borderRadius: idx < 3 ? 8 : 0
-            }}>
-              <div style={{
-                width: 30,
-                height: 30,
-                borderRadius: '50%',
-                background: idx < 3 ? coresPodio[idx] : '#6c757d',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: 14,
-                marginRight: 12
-              }}>
-                {idx + 1}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 16 }}>{item.turma}</div>
-                <div style={{ fontSize: 12, color: '#6c757d' }}>{item.escola} • {item.totalEstudantes} estudantes</div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <Badge bg="warning" text="dark" style={{ fontSize: 12, marginBottom: 2 }}>
-                  Score: {item.scoreGlobal || item.mediaXp}
-                </Badge>
-                <div style={{ fontSize: 10, color: '#6c757d' }}>
-                  XP: {item.mediaXp} | Part: {Math.round((item.mediaParticipacao || 0) * 100)}%
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-          </>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
-            Nenhum ranking disponível no momento.
-          </div>
-        )}
-      </Card.Body>
-    </Card>
-  );
 
   if (loading) {
     return (
@@ -391,14 +256,11 @@ function Quiz() {
 
   return (
     <>
-      {/* Ranking de Turmas */}
-      {renderRankingTurmas()}
-
       {/* Quiz */}
       <Card className="gamified-card">
         <Card.Body>
-          <Row className="align-items-center mb-4">
-            <Col xs={12} md={3} className="text-center mb-3 mb-md-0">
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ flex: '0 0 auto', textAlign: 'center', marginBottom: '1rem' }}>
               {/* Avatar temporário: círculo colorido */}
               <div style={{ 
                 width: 90, 
@@ -426,17 +288,17 @@ function Quiz() {
                   Você avançou para a etapa <b>{proximaEtapa.nome}</b>!
                 </Alert>
               )}
-            </Col>
-            <Col>
+            </div>
+            <div style={{ flex: '1', minWidth: '250px' }}>
               <div className="mb-2 text-center-mobile">
                 <b>XP:</b> {xpTotal} <span style={{ fontSize: 12, color: '#888' }}>(+{xpParaProxNivel} para o próximo nível)</span>
-                <ProgressBar now={xpAtual} max={50} label={`${xpAtual} XP`} className="mt-2" />
+                <ProgressBar now={xpAtual} max={100} label={`${xpAtual} XP`} className="mt-2" />
               </div>
               <div style={{ fontSize: 13, color: '#555' }} className="text-center-mobile">
-                <b>Etapas de Level:</b> Coelho (1), Lebre (2-3), Rato (4+)
+                <b>Etapas de Level:</b> Aprendiz (1), Veterano (2-3), Especialista (4+)
               </div>
-            </Col>
-          </Row>
+            </div>
+          </div>
 
           {/* Seletor de Questão */}
           <Card className="mb-4 gamified-card" style={{ background: '#f8f9fa' }}>
@@ -458,8 +320,8 @@ function Quiz() {
                   )}
                 </div>
               ) : (
-                <Row className="align-items-center">
-                  <Col md={6} className="mb-3 mb-md-0">
+                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div style={{ flex: '1', minWidth: '300px', marginBottom: '1rem' }}>
                     <Card.Title style={{ fontWeight: 700, fontSize: 20, color: '#ef7d00', marginBottom: 10 }} className="text-center-mobile">
                       📚 Selecione o Desafio
                     </Card.Title>
@@ -477,12 +339,12 @@ function Quiz() {
                       <option value="">Selecione uma questão...</option>
                       {questions.map((question, index) => (
                         <option key={question.id} value={question.id}>
-                          Dia {index + 1} {answeredQuestions.has(question.id) ? '✓' : ''}
+                          Dia {question.day || index + 1} {answeredQuestions.has(question.id) ? '✓' : ''}
                         </option>
                       ))}
                     </Form.Select>
-                  </Col>
-                  <Col md={6}>
+                  </div>
+                  <div style={{ flex: '1', minWidth: '250px' }}>
                     <div style={{ 
                       background: 'rgba(149, 193, 31, 0.1)', 
                       padding: '12px', 
@@ -496,8 +358,8 @@ function Quiz() {
                         {selectedQuestion ? `Questão ${questions.findIndex(q => q.id === selectedQuestion.id) + 1} de ${questions.length}` : 'Selecione uma questão'}
                       </div>
                     </div>
-                  </Col>
-                </Row>
+                  </div>
+                </div>
               )}
             </Card.Body>
           </Card>
@@ -539,24 +401,21 @@ function Quiz() {
                   <React.Fragment key={idx}>
                     <ListGroup.Item
                       action
-                      active={resposta === idx}
+                      active={false}
                       onClick={() => !answeredQuestions.has(selectedQuestion.id) && setResposta(idx)}
                       disabled={answeredQuestions.has(selectedQuestion.id)}
+                      className={resposta === idx ? 'quiz-alternative-selected' : 'quiz-alternative-default'}
                       style={{ 
                         fontSize: 17, 
                         borderRadius: 10, 
                         marginBottom: 6, 
-                        border: resposta === idx ? '2px solid #95c11f' : undefined, 
-                        background: resposta === idx ? 'rgba(149, 193, 31, 0.1)' : undefined, 
-                        opacity: answeredQuestions.has(selectedQuestion.id) ? 0.7 : 1 
+                        opacity: answeredQuestions.has(selectedQuestion.id) ? 0.7 : 1,
+                        cursor: answeredQuestions.has(selectedQuestion.id) ? 'default' : 'pointer'
                       }}
                     >
                       {op}
-                      {answeredQuestions.has(selectedQuestion.id) && idx === selectedQuestion.ac - 1 && (
-                        <Badge bg="success" className="ms-2">✓ Resposta Correta</Badge>
-                      )}
-                      {answeredQuestions.has(selectedQuestion.id) && resposta === idx && idx !== selectedQuestion.ac - 1 && (
-                        <Badge bg="danger" className="ms-2">✗ Sua Resposta</Badge>
+                      {answeredQuestions.has(selectedQuestion.id) && resposta === idx && (
+                        <Badge bg="success" className="ms-2">✓ Sua Resposta</Badge>
                       )}
                     </ListGroup.Item>
                   </React.Fragment>

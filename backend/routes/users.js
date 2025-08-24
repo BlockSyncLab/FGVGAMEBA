@@ -1,8 +1,34 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const { getUserById, getUsers, getCampanhaConfig } = require('../database/firebase');
+const { Pool } = require('pg');
+const config = require('../config');
+
+const pool = new Pool({
+  user: config.DB_USER,
+  host: config.DB_HOST,
+  database: config.DB_NAME,
+  password: config.DB_PASSWORD,
+  port: config.DB_PORT || 5432,
+  ssl: config.DB_SSL ? { rejectUnauthorized: false } : false,
+});
 
 const router = express.Router();
+
+// Funções PostgreSQL para substituir Firebase
+async function getUsers() {
+  const result = await pool.query('SELECT * FROM users ORDER BY id');
+  return result.rows;
+}
+
+async function getUserById(userId) {
+  const result = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+  return result.rows[0] || null;
+}
+
+async function getCampanhaConfig() {
+  const result = await pool.query('SELECT * FROM campanha_config WHERE ativa = true ORDER BY id DESC LIMIT 1');
+  return result.rows[0] || null;
+}
 
 // Função para calcular o dia atual baseado na data real
 async function getCurrentDay() {
@@ -94,10 +120,9 @@ router.get('/turma', authenticateToken, async (req, res) => {
 
     // Buscar todos os usuários
     const allUsers = await getUsers();
-    const usersArray = Object.values(allUsers || {});
 
     // Filtrar usuários da mesma turma
-    const turmaUsers = usersArray.filter(u => 
+    const turmaUsers = allUsers.filter(u => 
       u.turma === user.turma && u.escola === user.escola
     ).sort((a, b) => (b.xp_atual || 0) - (a.xp_atual || 0));
 
@@ -185,7 +210,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
     const currentDay = await getCurrentDay();
     
     // Calcular nível baseado no XP
-    const nivel = Math.floor((user.xp_atual || 0) / 500) + 1;
+            const nivel = Math.floor((user.xp_atual || 0) / 100) + 1;
     
     // Calcular XP para próximo nível
     const xpAtual = (user.xp_atual || 0) % 500;

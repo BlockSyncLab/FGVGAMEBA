@@ -1,6 +1,16 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const { executeQuery } = require('../database/connection');
+const { Pool } = require('pg');
+const config = require('../config');
+
+const pool = new Pool({
+  user: config.DB_USER,
+  host: config.DB_HOST,
+  database: config.DB_NAME,
+  password: config.DB_PASSWORD,
+  port: config.DB_PORT || 5432,
+  ssl: config.DB_SSL ? { rejectUnauthorized: false } : false,
+});
 
 const router = express.Router();
 
@@ -33,18 +43,18 @@ const authenticateToken = (req, res, next) => {
 // Rota para obter configuração atual da campanha
 router.get('/config', authenticateToken, async (req, res) => {
   try {
-    const configs = await executeQuery(
-      'SELECT * FROM campanha_config WHERE ativa = 1 ORDER BY id DESC LIMIT 1'
+    const result = await pool.query(
+      'SELECT * FROM campanha_config WHERE ativa = true ORDER BY id DESC LIMIT 1'
     );
 
-    if (configs.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(404).json({
         error: 'Configuração não encontrada',
         message: 'Nenhuma campanha ativa encontrada'
       });
     }
 
-    const config = configs[0];
+    const config = result.rows[0];
     const dataInicio = new Date(config.data_inicio);
     const dataAtual = new Date();
     const diffTime = dataAtual.getTime() - dataInicio.getTime();
@@ -107,30 +117,33 @@ router.put('/config', authenticateToken, async (req, res) => {
     }
 
     // Validar duração
-    if (duracao_dias < 1 || duracao_dias > 30) {
+    if (duracao_dias < 1 || duracao_dias > 365) {
       return res.status(400).json({
         error: 'Duração inválida',
-        message: 'Duração deve estar entre 1 e 30 dias'
+        message: 'Duração deve estar entre 1 e 365 dias'
       });
     }
 
-    // Desativar campanhas anteriores
-    await executeQuery('UPDATE campanha_config SET ativa = 0');
+    // Atualizar configuração
+    const result = await pool.query(
+      `UPDATE campanha_config 
+       SET data_inicio = $1, duracao_dias = $2, updated_at = NOW() 
+       WHERE ativa = true 
+       RETURNING *`,
+      [dataInicio.toISOString().split('T')[0], duracao_dias]
+    );
 
-    // Inserir nova configuração
-    await executeQuery(`
-      INSERT INTO campanha_config (data_inicio, duracao_dias, ativa)
-      VALUES (?, ?, 1)
-    `, [data_inicio, duracao_dias]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Configuração não encontrada',
+        message: 'Nenhuma campanha ativa encontrada para atualizar'
+      });
+    }
 
     res.json({
       success: true,
       message: 'Configuração da campanha atualizada com sucesso',
-      config: {
-        data_inicio,
-        duracao_dias,
-        ativo: 1
-      }
+      config: result.rows[0]
     });
 
   } catch (error) {
@@ -142,31 +155,147 @@ router.put('/config', authenticateToken, async (req, res) => {
   }
 });
 
-// Rota para obter logs de segurança (apenas admin)
-router.get('/security-logs', authenticateToken, async (req, res) => {
+// Rota para avançar dia da campanha (apenas admin)
+router.post('/advance-day', authenticateToken, async (req, res) => {
   try {
-    const logs = await executeQuery(`
-      SELECT 
-        sl.*,
-        u.login as user_login,
-        u.turma,
-        u.escola
-      FROM security_logs sl
-      LEFT JOIN users u ON sl.user_id = u.id
-      ORDER BY sl.created_at DESC
-      LIMIT 100
-    `);
+    // Buscar configuração atual
+    const configResult = await pool.query(
+      'SELECT * FROM campanha_config WHERE ativa = true ORDER BY id DESC LIMIT 1'
+    );
+
+    if (configResult.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Configuração não encontrada',
+        message: 'Nenhuma campanha ativa encontrada'
+      });
+    }
+
+    const config = configResult.rows[0];
+    
+    // Verificar se pode avançar
+    if (config.current_day >= config.duracao_dias) {
+      return res.status(400).json({
+        error: 'Campanha finalizada',
+        message: 'A campanha já chegou ao último dia'
+      });
+    }
+
+    // Avançar dia
+    const newDay = config.current_day + 1;
+    const result = await pool.query(
+      `UPDATE campanha_config 
+       SET current_day = $1, updated_at = NOW() 
+       WHERE id = $2 
+       RETURNING *`,
+      [newDay, config.id]
+    );
 
     res.json({
       success: true,
-      logs: logs
+      message: `Dia avançado para ${newDay}`,
+      config: result.rows[0]
     });
 
   } catch (error) {
-    console.error('Erro ao buscar logs de segurança:', error);
+    console.error('Erro ao avançar dia da campanha:', error);
     res.status(500).json({
       error: 'Erro interno do servidor',
-      message: 'Erro ao buscar logs de segurança'
+      message: 'Erro ao avançar dia da campanha'
+    });
+  }
+});
+
+// Rota para redefinir dia da campanha (apenas admin)
+router.post('/reset-day', authenticateToken, async (req, res) => {
+  try {
+    const { day } = req.body;
+
+    if (day === undefined || day < 0 || day > 10) {
+      return res.status(400).json({
+        error: 'Dia inválido',
+        message: 'Dia deve estar entre 0 e 10'
+      });
+    }
+
+    // Atualizar dia
+    const result = await pool.query(
+      `UPDATE campanha_config 
+       SET current_day = $1, updated_at = NOW() 
+       WHERE ativa = true 
+       RETURNING *`,
+      [day]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Configuração não encontrada',
+        message: 'Nenhuma campanha ativa encontrada'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Dia redefinido para ${day}`,
+      config: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error('Erro ao redefinir dia da campanha:', error);
+    res.status(500).json({
+      error: 'Erro interno do servidor',
+      message: 'Erro ao redefinir dia da campanha'
+    });
+  }
+});
+
+// Rota para obter status da campanha
+router.get('/status', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM campanha_config WHERE ativa = true ORDER BY id DESC LIMIT 1'
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Configuração não encontrada',
+        message: 'Nenhuma campanha ativa encontrada'
+      });
+    }
+
+    const config = result.rows[0];
+    const dataInicio = new Date(config.data_inicio);
+    const dataAtual = new Date();
+    const diffTime = dataAtual.getTime() - dataInicio.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    let status = 'ativa';
+    let diaAtual = config.current_day || 1;
+    
+    if (diffDays < 0) {
+      status = 'aguardando';
+      diaAtual = 0;
+    } else if (diffDays >= config.duracao_dias) {
+      status = 'finalizada';
+      diaAtual = config.duracao_dias;
+    }
+
+    res.json({
+      success: true,
+      status: {
+        status,
+        diaAtual,
+        diasRestantes: Math.max(0, config.duracao_dias - diaAtual),
+        dataInicio: config.data_inicio,
+        duracaoDias: config.duracao_dias,
+        ativa: config.ativa
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro ao buscar status da campanha:', error);
+    res.status(500).json({
+      error: 'Erro interno do servidor',
+      message: 'Erro ao buscar status da campanha'
     });
   }
 });

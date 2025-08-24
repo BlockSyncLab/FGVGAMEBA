@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
+import { apiService } from '../services/api';
 
 interface User {
   id?: number;
@@ -37,6 +38,9 @@ interface UserContextType {
   updateLevel: (newLevel: number) => void;
   updateRanking: (rankingData: Partial<User>) => void;
   refreshUserData: () => void;
+  checkAuthStatus: () => Promise<boolean>;
+  logout: () => void;
+  isCheckingAuth: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -78,6 +82,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   };
 
   const [user, setUser] = useState<User>(getInitialUser);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // Função para salvar usuário no localStorage
   const saveUserToStorage = (userData: User) => {
@@ -109,7 +114,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const addXP = (amount: number) => {
     setUserWithStorage(prev => {
       const newXP = prev.xp + amount;
-      const newLevel = Math.floor(newXP / 50) + 1;
+      const newLevel = Math.floor(newXP / 100) + 1;
       return { 
         ...prev, 
         xp: newXP,
@@ -133,6 +138,63 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     setUser(getInitialUser());
   };
 
+  // Função para verificar status da autenticação
+  const checkAuthStatus = useCallback(async (): Promise<boolean> => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        return false;
+      }
+
+      // Verificar se o token ainda é válido
+      const response = await apiService.verifyToken();
+      if (response && response.login) {
+        // Token válido, atualizar dados do usuário se necessário
+        setUserWithStorage(response as any);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.log('Token inválido ou expirado:', error);
+      return false;
+    }
+  }, []);
+
+  // Função para fazer logout
+  const logout = useCallback(() => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    // apiService.logout() já é chamado automaticamente quando há erro 401
+    setUser(getInitialUser());
+  }, []);
+
+  // Verificar status da autenticação ao inicializar
+  useEffect(() => {
+    const checkInitialAuth = async () => {
+      try {
+        const savedUser = localStorage.getItem('user');
+        const savedToken = localStorage.getItem('token');
+        
+        if (savedUser && savedToken) {
+          // Tentar verificar se o token ainda é válido
+          const isValid = await checkAuthStatus();
+          if (!isValid) {
+            // Token inválido, limpar dados
+            logout();
+          }
+        }
+        // Sempre definir como false, mesmo quando não há usuário salvo
+        setIsCheckingAuth(false);
+      } catch (error) {
+        console.error('Erro ao verificar autenticação inicial:', error);
+        logout();
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkInitialAuth();
+  }, []); // Remover dependências para evitar loop infinito
+
   const value = {
     user,
     setUser: setUserWithStorage,
@@ -140,7 +202,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     addXP,
     updateLevel,
     updateRanking,
-    refreshUserData
+    refreshUserData,
+    checkAuthStatus,
+    logout,
+    isCheckingAuth
   };
 
   return (

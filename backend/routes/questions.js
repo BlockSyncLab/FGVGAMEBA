@@ -1,14 +1,16 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const { 
-  getUsers, 
-  getUserById, 
-  updateUser, 
-  getQuestions, 
-  getQuestionById,
-  getCampanhaConfig,
-  logSecurityViolation 
-} = require('../database/firebase');
+const { Pool } = require('pg');
+const config = require('../config');
+
+const pool = new Pool({
+  user: config.DB_USER,
+  host: config.DB_HOST,
+  database: config.DB_NAME,
+  password: config.DB_PASSWORD,
+  port: config.DB_PORT || 5432,
+  ssl: config.DB_SSL ? { rejectUnauthorized: false } : false,
+});
 
 const router = express.Router();
 
@@ -38,6 +40,60 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
+// Funções PostgreSQL para substituir Firebase
+async function getUsers() {
+  const result = await pool.query('SELECT * FROM users ORDER BY id');
+  return result.rows;
+}
+
+async function getUserById(userId) {
+  const result = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
+  return result.rows[0] || null;
+}
+
+async function updateUser(userId, updateData) {
+  try {
+    const fields = Object.keys(updateData);
+    const values = Object.values(updateData);
+    const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
+    
+    const query = `UPDATE users SET ${setClause}, updated_at = NOW() WHERE id = $1 RETURNING *`;
+    const result = await pool.query(query, [userId, ...values]);
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Erro ao atualizar usuário:', error);
+    throw error;
+  }
+}
+
+async function getQuestions() {
+  const result = await pool.query('SELECT * FROM questions ORDER BY id');
+  return result.rows;
+}
+
+async function getQuestionById(questionId) {
+  const result = await pool.query('SELECT * FROM questions WHERE id = $1', [questionId]);
+  return result.rows[0] || null;
+}
+
+async function getCampanhaConfig() {
+  const result = await pool.query('SELECT * FROM campanha_config WHERE ativa = true ORDER BY id DESC LIMIT 1');
+  return result.rows[0] || null;
+}
+
+async function logSecurityViolation(userId, action, details, req) {
+  const timestamp = new Date().toISOString();
+  console.log(`🚨 VIOLAÇÃO DE SEGURANÇA [${timestamp}]:`);
+  console.log(`   👤 Usuário ID: ${userId}`);
+  console.log(`   🎯 Ação: ${action}`);
+  console.log(`   📝 Detalhes: ${details}`);
+  console.log(`   🔍 IP: ${req?.ip || 'N/A'}`);
+  console.log(`   🌐 User-Agent: ${req?.headers['user-agent'] || 'N/A'}`);
+  
+  // TODO: Criar tabela de logs de segurança se necessário
+  // Por enquanto, apenas log no console
+}
+
 // Função para obter configuração da campanha
 async function getCampanhaConfigLocal() {
   try {
@@ -49,7 +105,23 @@ async function getCampanhaConfigLocal() {
   }
 }
 
-// Função para obter o dia atual da campanha
+// Função para calcular dias úteis (excluindo fins de semana)
+function calculateWorkingDays(startDate, endDate) {
+  let workingDays = 0;
+  const current = new Date(startDate);
+  
+  while (current <= endDate) {
+    // 0 = Domingo, 6 = Sábado
+    if (current.getDay() !== 0 && current.getDay() !== 6) {
+      workingDays++;
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  
+  return workingDays;
+}
+
+// Função para obter o dia atual da campanha (baseado em dias úteis)
 async function getCurrentDay() {
   try {
     const config = await getCampanhaConfigLocal();
@@ -65,31 +137,29 @@ async function getCurrentDay() {
       return config.current_day;
     }
     
-    // Fallback: calcular baseado na data real (para compatibilidade)
+    // Fallback: calcular baseado em dias úteis (excluindo fins de semana)
     const dataInicio = new Date(config.data_inicio);
     const dataAtual = new Date();
     
-    // Calcular diferença em dias
-    const diffTime = dataAtual.getTime() - dataInicio.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    // Calcular dias úteis desde o início
+    const workingDays = calculateWorkingDays(dataInicio, dataAtual);
     
     // Se ainda não começou a campanha
-    if (diffDays < 0) {
+    if (workingDays < 0) {
       console.log('📅 Campanha ainda não começou');
       return 0;
     }
     
-    // Se a campanha já terminou
-    if (diffDays >= config.duracao_dias) {
-      console.log('📅 Campanha já terminou');
-      return config.duracao_dias;
+    // Se a campanha já terminou (10 dias úteis)
+    if (workingDays >= 10) {
+      console.log('📅 Campanha já terminou (10 dias úteis)');
+      return 10;
     }
     
-    // Dia atual da campanha (1-based)
-    const currentDay = diffDays + 1;
+    // Dia atual da campanha (1-based, baseado em dias úteis)
+    const currentDay = workingDays + 1;
     
-    console.log(`📅 Calculado dia atual da campanha: ${currentDay} (${config.duracao_dias} dias total)`);
-    
+    console.log(`📅 Calculado dia atual da campanha: ${currentDay} (10 dias úteis total)`);
     return currentDay;
   } catch (error) {
     console.error('Erro ao calcular dia atual:', error);
@@ -128,7 +198,7 @@ router.get('/available', authenticateToken, async (req, res) => {
     
     // Buscar configuração da campanha
     const config = await getCampanhaConfigLocal();
-    const maxDays = config ? config.duracao_dias : 4;
+    const maxDays = 10; // Sempre 10 dias úteis
     
     console.log('👤 User ID:', userId);
     console.log('📅 Dia atual da campanha:', currentDay);
@@ -178,12 +248,11 @@ router.get('/available', authenticateToken, async (req, res) => {
             pergunta: question.pergunta,
             imagem: question.imagem,
             dica: question.dica,
-            a1: question.a1,
-            a2: question.a2,
-            a3: question.a3,
-            a4: question.a4,
-            a5: question.a5,
-            ac: question.ac,
+            a1: question.alternativa_a,
+            a2: question.alternativa_b,
+            a3: question.alternativa_c,
+            a4: question.alternativa_d,
+            a5: question.alternativa_e || null,
             hasAnswered: hasAnswered,
             isAvailable: day <= currentDay
           });
@@ -259,7 +328,7 @@ router.post('/answer', authenticateToken, async (req, res) => {
 
     // Encontrar qual dia corresponde a esta questão
     let questionDay = null;
-    for (let day = 1; day <= 4; day++) {
+    for (let day = 1; day <= 10; day++) {
       if (user[`id_q${day}`] === questionId) {
         questionDay = day;
         break;
@@ -309,8 +378,8 @@ router.post('/answer', authenticateToken, async (req, res) => {
       });
     }
     // O frontend envia o índice (0-4), mas o backend tem a alternativa correta como 1-5
-    // Então precisamos ajustar: answer + 1 === question.ac
-    const isCorrect = (answer + 1) === question.ac;
+    // Então precisamos ajustar: answer + 1 === question.resposta_correta
+    const isCorrect = (answer + 1) === question.resposta_correta;
     
     // Calcular XP base
     let xpGain = isCorrect ? 50 : -10; // -10 XP para resposta incorreta
@@ -324,7 +393,7 @@ router.post('/answer', authenticateToken, async (req, res) => {
     
     console.log('🔍 Verificando resposta:');
     console.log('📝 Resposta enviada (índice):', answer);
-    console.log('✅ Alternativa correta (1-5):', question.ac);
+    console.log('✅ Alternativa correta (1-5):', question.resposta_correta);
     console.log('🎯 Resposta ajustada:', answer + 1);
     console.log('✅ Está correto?', isCorrect);
 
@@ -352,9 +421,12 @@ router.post('/answer', authenticateToken, async (req, res) => {
 
     await updateUser(userId, updates);
 
-    // Se acertou, buscar a dica da próxima questão (máximo dia 4)
+    // Salvar timestamp da última resposta
+    await updateUser(userId, { last_response_timestamp: new Date().toISOString() });
+
+    // Se acertou, buscar a dica da próxima questão (máximo dia 10)
     let nextHint = null;
-    if (isCorrect && questionDay < 4) {
+    if (isCorrect && questionDay < 10) {
       const nextDay = questionDay + 1;
       const nextQuestionId = user[`id_q${nextDay}`];
       
@@ -380,7 +452,7 @@ router.post('/answer', authenticateToken, async (req, res) => {
       success: true,
       isCorrect: isCorrect,
       xpGained: xpGain, // Mudando de xpGain para xpGained
-      correctAnswer: question.ac,
+      correctAnswer: question.resposta_correta,
       nextHint: nextHint,
       isAtrasada: isAtrasada,
       message: isCorrect 
@@ -418,7 +490,7 @@ router.get('/next-question-info', authenticateToken, async (req, res) => {
     const nextDay = currentDay + 1;
     
     // Verificar se há próxima pergunta
-    if (nextDay > 4) {
+    if (nextDay > 10) {
       return res.json({
         success: true,
         hasNextQuestion: false,
@@ -501,8 +573,8 @@ router.get('/stats', authenticateToken, async (req, res) => {
     let answeredQuestions = 0;
     let correctAnswers = 0;
 
-    // Contar perguntas respondidas
-    for (let day = 1; day <= 4; day++) {
+    // Contar perguntas respondidas (10 questões)
+    for (let day = 1; day <= 10; day++) {
       if (user[`response_q${day}`]) {
         answeredQuestions++;
         
@@ -515,7 +587,7 @@ router.get('/stats', authenticateToken, async (req, res) => {
     res.json({
       success: true,
       stats: {
-        totalQuestions: 4,
+        totalQuestions: 10,
         answeredQuestions: answeredQuestions,
         correctAnswers: correctAnswers,
         xpAtual: user.xp_atual,

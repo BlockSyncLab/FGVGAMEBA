@@ -1,7 +1,17 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { executeQuery } = require('../database/connection');
+const { Pool } = require('pg');
+const config = require('../config');
+
+const pool = new Pool({
+  user: config.DB_USER,
+  host: config.DB_HOST,
+  database: config.DB_NAME,
+  password: config.DB_PASSWORD,
+  port: config.DB_PORT || 5432,
+  ssl: config.DB_SSL ? { rejectUnauthorized: false } : false,
+});
 
 const router = express.Router();
 
@@ -18,20 +28,20 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Buscar usuário no banco
-    const users = await executeQuery(
-      'SELECT * FROM users WHERE login = ?',
+    // Buscar usuário no banco PostgreSQL
+    const result = await pool.query(
+      'SELECT * FROM users WHERE login = $1',
       [login]
     );
 
-    if (users.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(401).json({
         error: 'Credenciais inválidas',
         message: 'Usuário não encontrado'
       });
     }
 
-    const user = users[0];
+    const user = result.rows[0];
 
     // Verificar senha usando bcrypt
     const isValidPassword = await bcrypt.compare(senha, user.senha);
@@ -55,8 +65,8 @@ router.post('/login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
-    // Calcular nível baseado no XP (usando 50 XP por nível)
-    const nivel = Math.floor(user.xp_atual / 50) + 1;
+    // Calcular nível baseado no XP (usando 100 XP por nível)
+    const nivel = Math.floor(user.xp_atual / 100) + 1;
     
     // Retornar dados do usuário (sem senha) e token
     const userData = {
@@ -84,7 +94,17 @@ router.post('/login', async (req, res) => {
       id_q4: user.id_q4,
       response_q4: user.response_q4,
       id_q5: user.id_q5,
-      response_q5: user.response_q5
+      response_q5: user.response_q5,
+      id_q6: user.id_q6,
+      response_q6: user.response_q6,
+      id_q7: user.id_q7,
+      response_q7: user.response_q7,
+      id_q8: user.id_q8,
+      response_q8: user.response_q8,
+      id_q9: user.id_q9,
+      response_q9: user.response_q9,
+      id_q10: user.id_q10,
+      response_q10: user.response_q10
     };
 
     res.json({
@@ -122,22 +142,22 @@ router.get('/verify', async (req, res) => {
     );
 
     // Buscar dados atualizados do usuário
-    const users = await executeQuery(
-      'SELECT * FROM users WHERE id = ?',
+    const result = await pool.query(
+      'SELECT * FROM users WHERE id = $1',
       [decoded.id]
     );
 
-    if (users.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(401).json({
         error: 'Usuário não encontrado',
         message: 'Token inválido'
       });
     }
 
-    const user = users[0];
+    const user = result.rows[0];
 
-    // Calcular nível baseado no XP (usando 50 XP por nível)
-    const nivel = Math.floor(user.xp_atual / 50) + 1;
+    // Calcular nível baseado no XP (usando 100 XP por nível)
+    const nivel = Math.floor(user.xp_atual / 100) + 1;
     
     // Retornar dados do usuário (sem senha)
     const userData = {
@@ -165,7 +185,17 @@ router.get('/verify', async (req, res) => {
       id_q4: user.id_q4,
       response_q4: user.response_q4,
       id_q5: user.id_q5,
-      response_q5: user.response_q5
+      response_q5: user.response_q5,
+      id_q6: user.id_q6,
+      response_q6: user.response_q6,
+      id_q7: user.id_q7,
+      response_q7: user.response_q7,
+      id_q8: user.id_q8,
+      response_q8: user.response_q8,
+      id_q9: user.id_q9,
+      response_q9: user.response_q9,
+      id_q10: user.id_q10,
+      response_q10: user.response_q10
     };
 
     res.json({
