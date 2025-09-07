@@ -1,0 +1,60 @@
+service: [NOME_PROJETO]-backend
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: [REGIAO_EMPRESA]
+  environment:
+    NODE_ENV: production
+    DB_HOST: ${ssm:/[PREFIXO_SSM]/db-host}
+    DB_PORT: ${ssm:/[PREFIXO_SSM]/db-port}
+    DB_NAME: ${ssm:/[PREFIXO_SSM]/db-name}
+    DB_USER: ${ssm:/[PREFIXO_SSM]/db-user}
+    DB_PASSWORD: ${ssm:/[PREFIXO_SSM]/db-password}
+    JWT_SECRET: ${ssm:/[PREFIXO_SSM]/jwt-secret}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - ssm:GetParameter
+            - ssm:GetParameters
+          Resource: 
+            - "arn:aws:ssm:${aws:region}:${aws:accountId}:parameter/[PREFIXO_SSM]/*"
+        - Effect: Allow
+          Action:
+            - rds:*
+          Resource: "*"
+
+functions:
+  # Função principal para todas as rotas
+  api:
+    handler: handler.handler
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: '*'
+    timeout: 30
+    memorySize: 512
+    environment:
+      IS_OFFLINE: false
+
+  # Função específica para cron jobs (atualização de campanhas)
+  cronCampaign:
+    handler: cron-handler.handler
+    events:
+      - schedule: rate(1 hour)
+    timeout: 60
+    memorySize: 256
+    environment:
+      IS_OFFLINE: false
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3000
+    noPrependStageInUrl: true
+

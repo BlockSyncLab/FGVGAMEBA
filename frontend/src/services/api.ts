@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://octopus-app-4psfy.ondigitalocean.app/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://[API_GATEWAY_ID].execute-api.[REGIAO_EMPRESA].amazonaws.com';
 
 export interface User {
   id: number;
@@ -108,7 +108,7 @@ class ApiService {
   }
 
   async login(login: string, senha: string): Promise<LoginResponse> {
-    const response = await this.request('/auth/login', {
+    const response = await this.request('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({ login, senha }),
     });
@@ -121,38 +121,38 @@ class ApiService {
   }
 
   async verifyToken(): Promise<User> {
-    return this.request('/auth/verify');
+    return this.request('/api/auth/verify');
   }
 
   async getAvailableQuestions(): Promise<AvailableQuestionsResponse> {
-    return this.request('/questions/available');
+    return this.request('/api/questions/available');
   }
 
   async answerQuestion(questionId: number, answer: number): Promise<{ success: boolean; isCorrect: boolean; xpGained: number; message: string; nextHint?: string; isAtrasada?: boolean }> {
-    return this.request('/questions/answer', {
+    return this.request('/api/questions/answer', {
       method: 'POST',
       body: JSON.stringify({ questionId, answer }),
     });
   }
 
   async getUserProfile(): Promise<User> {
-    return this.request('/users/profile');
+    return this.request('/api/users/profile');
   }
 
   async getClassRanking(): Promise<any[]> {
-    return this.request('/ranking/turmas');
+    return this.request('/api/ranking/turmas');
   }
 
   async getTop3Classes(): Promise<{ success: boolean; top3: any[] }> {
-    return this.request('/ranking/top3');
+    return this.request('/api/ranking/top3');
   }
 
   async getClassPosition(turma: string, escola: string): Promise<ClassPositionResponse> {
-    return this.request(`/ranking/turma/${encodeURIComponent(turma)}/${encodeURIComponent(escola)}`);
+    return this.request(`/api/ranking/turma/${encodeURIComponent(turma)}/${encodeURIComponent(escola)}`);
   }
 
   async getClassDetails(): Promise<{ success: boolean; turma: any; estudantes: any[] }> {
-    return this.request('/ranking/minha-turma');
+    return this.request('/api/ranking/minha-turma');
   }
 
   async getNextQuestionInfo(): Promise<{
@@ -171,11 +171,11 @@ class ApiService {
     };
     message?: string;
   }> {
-    return this.request('/questions/next-question-info');
+    return this.request('/api/questions/next-question-info');
   }
 
   async getUserPosition(): Promise<{ success: boolean; user: { posicao: number; totalUsuarios: number; xp: number; nivel: number } }> {
-    return this.request('/ranking/user-position');
+    return this.request('/api/ranking/user-position');
   }
 
   logout() {

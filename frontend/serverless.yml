@@ -1,0 +1,116 @@
+service: ga-quiz-frontend
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  environment:
+    NODE_ENV: production
+
+functions:
+  # Função para fazer build e deploy do frontend
+  deployFrontend:
+    handler: deploy-handler.deploy
+    events:
+      - schedule: rate(1 day) # Deploy diário (opcional)
+    timeout: 300
+    memorySize: 512
+
+resources:
+  Resources:
+    # Bucket S3 para hospedar o frontend
+    FrontendBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:service}-${opt:stage, 'dev'}-${self:provider.region}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+          BlockPublicPolicy: false
+          IgnorePublicAcls: false
+          RestrictPublicBuckets: false
+        WebsiteConfiguration:
+          IndexDocument: index.html
+          ErrorDocument: index.html
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders: ['*']
+              AllowedMethods: [GET, HEAD]
+              AllowedOrigins: ['*']
+              MaxAge: 3000
+
+    # Bucket Policy para permitir acesso público
+    FrontendBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref FrontendBucket
+        PolicyDocument:
+          Statement:
+            - Sid: PublicReadGetObject
+              Effect: Allow
+              Principal: '*'
+              Action: 's3:GetObject'
+              Resource: !Sub '${FrontendBucket}/*'
+
+    # CloudFront Distribution
+    CloudFrontDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Origins:
+            - Id: S3Origin
+              DomainName: !GetAtt FrontendBucket.RegionalDomainName
+              S3OriginConfig:
+                OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOAI}'
+          Enabled: true
+          DefaultRootObject: index.html
+          DefaultCacheBehavior:
+            TargetOriginId: S3Origin
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+            CachedMethods:
+              - GET
+              - HEAD
+            ForwardedValues:
+              QueryString: false
+              Cookies:
+                Forward: none
+            MinTTL: 0
+            DefaultTTL: 86400
+            MaxTTL: 31536000
+          ErrorPages:
+            - ErrorCode: 404
+              ResponseCode: 200
+              ResponsePagePath: /index.html
+            - ErrorCode: 403
+              ResponseCode: 200
+              ResponsePagePath: /index.html
+          PriceClass: PriceClass_100
+          ViewerCertificate:
+            CloudFrontDefaultCertificate: true
+
+    # Origin Access Identity para CloudFront
+    CloudFrontOAI:
+      Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+      Properties:
+        CloudFrontOriginAccessIdentityConfig:
+          Comment: !Sub 'OAI for ${AWS::StackName}'
+
+  Outputs:
+    WebsiteURL:
+      Description: 'URL do website'
+      Value: !GetAtt FrontendBucket.WebsiteURL
+      Export:
+        Name: !Sub '${AWS::StackName}-WebsiteURL'
+    
+    CloudFrontURL:
+      Description: 'URL do CloudFront'
+      Value: !GetAtt CloudFrontDistribution.DomainName
+      Export:
+        Name: !Sub '${AWS::StackName}-CloudFrontURL'
+
+
+

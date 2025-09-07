@@ -1,0 +1,35 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/rush/v5/rush.schema.json",
+  "rushVersion": "5.100.0",
+  "npmVersion": "8.19.4",
+  "nodeSupportedVersionRange": ">=18.0.0",
+  "projectFolderMinDepth": 2,
+  "projectFolderMaxDepth": 3,
+  "allowMostlyStandardPackageNames": true,
+  "ensureConsistentVersions": true,
+  "projects": [
+    {
+      "packageName": "@ga-quiz/backend",
+      "projectFolder": "packages/backend"
+    },
+    {
+      "packageName": "@ga-quiz/frontend", 
+      "projectFolder": "packages/frontend"
+    },
+    {
+      "packageName": "@ga-quiz/shared",
+      "projectFolder": "packages/shared"
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/FGV-Municipios/ga-quiz.git"
+  },
+  "eventHooks": {
+    "preRushInstall": [],
+    "postRushInstall": [],
+    "preRushBuild": [],
+    "postRushBuild": []
+  },
+  "telemetryEnabled": false
+}
+

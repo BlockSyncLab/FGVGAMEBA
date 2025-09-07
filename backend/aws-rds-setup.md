@@ -7,16 +7,16 @@ Você precisa fornecer estas informações do seu banco RDS PostgreSQL:
 
 ```bash
 # Endpoint do banco (ex: quiz-db.abc123.us-east-1.rds.amazonaws.com)
-DB_HOST=quiz-db.abc123.us-east-1.rds.amazonaws.com
+DB_HOST=game-postgres.chykacyyar03.us-east-2.rds.amazonaws.com
 
 # Nome do banco de dados
-DB_NAME=ga_quiz_db
+DB_NAME=game-postgres
 
 # Usuário do banco
-DB_USER=admin
+DB_USER=ZIGOMES
 
 # Senha do banco
-DB_PASSWORD=sua_senha_super_segura
+DB_PASSWORD=Vampiro5!
 
 # Porta (padrão PostgreSQL: 5432)
 DB_PORT=5432
@@ -134,3 +134,5 @@ Se precisar de ajuda:
 - AWS Support (se tiver plano)
 - Stack Overflow
 - PostgreSQL Documentation
+
+

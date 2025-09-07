@@ -1,0 +1,17 @@
+{
+  "name": "@ga-quiz/shared",
+  "version": "1.0.0",
+  "description": "Configurações e utilitários compartilhados do GA Quiz",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'Shared package - no build needed'",
+    "test": "echo 'Shared package - no tests'"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}
+

@@ -5,7 +5,7 @@ const config = {
   DB_PASSWORD: 'Vampiro5!',
   DB_PORT: 5432,
   DB_SSL: true,
-  JWT_SECRET: 'ga_quiz_secret_key_2024_bahia_education_postgresql',
+  JWT_SECRET: '[JWT_SECRET_EMPRESA]_postgresql',
   PORT: 3001,
   NODE_ENV: 'production',
   LOG_QUERIES: true

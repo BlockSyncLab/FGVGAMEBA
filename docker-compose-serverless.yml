@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # Banco de dados PostgreSQL para desenvolvimento
+  postgres:
+    image: postgres:15
+    container_name: ga-quiz-postgres
+    environment:
+      POSTGRES_DB: ga_quiz_db
+      POSTGRES_USER: ga_quiz_user
+      POSTGRES_PASSWORD: ga_quiz_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - ga-quiz-network
+
+  # Redis para cache e sessões (opcional)
+  redis:
+    image: redis:7-alpine
+    container_name: ga-quiz-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ga-quiz-network
+
+  # Backend serverless (desenvolvimento local)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.serverless
+    container_name: ga-quiz-backend
+    environment:
+      NODE_ENV: development
+      IS_OFFLINE: true
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ga_quiz_db
+      DB_USER: ga_quiz_user
+      DB_PASSWORD: ga_quiz_password
+      JWT_SECRET: ga_quiz_secret_key_2024_bahia_education_dev
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-dev-project}
+      FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY:-dev-key}
+      FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL:-dev@example.com}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - ga-quiz-network
+    command: npm run offline
+
+  # Frontend (desenvolvimento local)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.serverless
+    container_name: ga-quiz-frontend
+    environment:
+      NODE_ENV: development
+      VITE_API_URL: http://localhost:3000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - ga-quiz-network
+    command: npm run dev -- --host 0.0.0.0
+
+  # AWS LocalStack para simular serviços AWS localmente
+  localstack:
+    image: localstack/localstack:latest
+    container_name: ga-quiz-localstack
+    environment:
+      - SERVICES=lambda,apigateway,s3,cloudfront,ssm,rds
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    ports:
+      - "4566:4566"
+    volumes:
+      - localstack_data:/tmp/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - ga-quiz-network
+
+volumes:
+  postgres_data:
+  localstack_data:
+
+networks:
+  ga-quiz-network:
+    driver: bridge
+
+
+

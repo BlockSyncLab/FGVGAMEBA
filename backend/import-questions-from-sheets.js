@@ -37,7 +37,7 @@ async function importQuestionsFromGoogleSheets() {
     console.log(`📋 Planilha encontrada: ${doc.title}`);
     console.log(`📝 Total de planilhas: ${doc.sheetCount}`);
     
-    // Listar todas as planilhas disponíveis
+    // Listar todas as planilhas disponnoíveis
     console.log('📝 Planilhas disponíveis:');
     doc.sheetsByIndex.forEach((sheet, index) => {
       console.log(`  ${index + 1}. ${sheet.title}`);
