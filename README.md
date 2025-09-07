@@ -2,20 +2,24 @@
 
 Sistema de quiz gamificado sobre a história da Bahia, desenvolvido para estudantes do ensino fundamental.
 
-## 🚀 Tecnologias
+## 🚀 Arquitetura Atual
 
-- **Frontend**: React + TypeScript + Vite
-- **Backend**: Node.js + Express
-- **Banco de Dados**: Firebase Realtime Database
-- **Deploy**: DigitalOcean App Platform
+- **Frontend**: React + TypeScript + Vite (hospedado no S3 + CloudFront)
+- **Backend**: Node.js + Express (AWS Lambda + API Gateway)
+- **Banco de Dados**: PostgreSQL (AWS RDS)
+- **Configurações**: AWS SSM Parameter Store
+- **Deploy**: AWS Serverless (Lambda + S3)
 
 ## 📁 Estrutura do Projeto
 
 ```
-├── backend/           # API Node.js
-├── frontend/          # Aplicação React
-├── FIREBASE-SETUP.md  # Guia Firebase
-└── DEPLOY-GUIDE.md    # Guia de Deploy
+├── backend/                    # API Node.js (Lambda)
+├── frontend/                   # Aplicação React (S3)
+├── GUIA-DEPLOY-EMPRESA.md     # Guia completo para empresa
+├── CONFIG-EMPRESA.md          # Configurações específicas
+├── database-setup-empresa.md  # Setup do banco de dados
+├── README-EMPRESA.md          # Visão geral para empresa
+└── migrate-database-empresa.js # Script de migração do banco
 ```
 
 ## 🔧 Configuração Local
@@ -23,53 +27,94 @@ Sistema de quiz gamificado sobre a história da Bahia, desenvolvido para estudan
 ### Pré-requisitos
 - Node.js 18+
 - npm ou yarn
-- Conta Firebase
+- AWS CLI configurado
+- PostgreSQL client
 
-### Backend
+### Backend (Desenvolvimento)
 ```bash
 cd backend
 npm install
-cp serviceAccountKey.json .  # Adicionar arquivo do Firebase
 npm run dev
 ```
 
-### Frontend
+### Frontend (Desenvolvimento)
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-## 🚀 Deploy
+## 🚀 Deploy na AWS
 
-### 1. Configurar Firebase
-Siga o guia em `FIREBASE-SETUP.md`
+### Para Desenvolvimento Pessoal
+Siga o guia em `AWS-SERVERLESS-SETUP.md`
 
-### 2. Subir para GitHub
-```bash
-git add .
-git commit -m "Initial commit"
-git push origin main
-```
-
-### 3. Deploy no DigitalOcean App Platform
-Siga o guia em `DEPLOY-GUIDE.md`
+### Para Deploy na Empresa
+Siga o guia em `GUIA-DEPLOY-EMPRESA.md`
 
 ## 📊 Funcionalidades
 
-- ✅ Sistema de login
-- ✅ Quiz diário com 4 perguntas sobre Bahia
+- ✅ Sistema de login com JWT
+- ✅ Quiz diário com 10 perguntas sobre Bahia
 - ✅ Sistema de XP e gamificação
-- ✅ Ranking de turmas
+- ✅ Ranking de turmas em tempo real
 - ✅ Modal de próxima pergunta
 - ✅ Dicas na mensagem de acerto
+- ✅ Dashboard do usuário
+- ✅ Estatísticas detalhadas
+
+## 🏗️ Arquitetura Serverless
+
+### **Backend (AWS Lambda)**
+- **API Gateway** para roteamento
+- **Lambda Functions** para lógica de negócio
+- **RDS PostgreSQL** para persistência
+- **SSM Parameter Store** para configurações
+
+### **Frontend (S3 + CloudFront)**
+- **S3** para hospedagem estática
+- **CloudFront** para CDN global
+- **React + TypeScript** para interface
+
+### **Banco de Dados**
+- **PostgreSQL** no RDS
+- **Migração automatizada** via scripts
+- **Backup automático** configurado
 
 ## 🔒 Segurança
 
 - JWT para autenticação
-- Rate limiting
+- Rate limiting por IP
 - CORS configurado
+- SSL/TLS em todas as conexões
 - Logs de segurança
+- Permissões IAM mínimas
+
+## 💰 Custos Estimados
+
+- **RDS PostgreSQL**: ~$15-20/mês
+- **Lambda**: ~$1-5/mês
+- **API Gateway**: ~$1-3/mês
+- **S3 + CloudFront**: ~$1-5/mês
+- **Total**: ~$20-35/mês
+
+## 📚 Documentação
+
+- **`GUIA-DEPLOY-EMPRESA.md`** - Deploy completo na empresa
+- **`CONFIG-EMPRESA.md`** - Configurações específicas
+- **`database-setup-empresa.md`** - Setup do banco
+- **`README-EMPRESA.md`** - Visão geral para empresa
+
+## 🚀 Deploy Rápido
+
+```bash
+# 1. Clonar repositório
+git clone https://github.com/BlockSyncLab/FGVGAMEBA.git
+cd FGVGAMEBA
+
+# 2. Seguir guia da empresa
+# Abrir: GUIA-DEPLOY-EMPRESA.md
+```
 
 ## 📝 Licença
 
